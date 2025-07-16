@@ -3,6 +3,7 @@ body {
     overflow: hidden;
     font-family: 'Geist Mono', monospace;
     color: white;
+    touch-action: none;
 }
 
 #game-container {
@@ -231,4 +232,67 @@ input, select {
 
 .hide-cursor {
     cursor: none;
+}
+
+#mobile-controls {
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    display: none;
+    justify-content: space-between;
+    align-items: flex-end;
+    padding: 0 20px;
+    box-sizing: border-box;
+    z-index: 6;
+}
+
+#joystick-container {
+    width: 150px;
+    height: 150px;
+    background-color: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    position: relative;
+}
+
+#joystick-stick {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(255, 255, 255, 0.5);
+    border-radius: 50%;
+    position: absolute;
+    top: 45px;
+    left: 45px;
+}
+
+#jump-button {
+    width: 80px;
+    height: 80px;
+    background-color: rgba(76, 175, 80, 0.7);
+    border-radius: 50%;
+    color: white;
+    font-size: 1.5em;
+    border: none;
+    margin-right: 20px;
+}
+
+#orientation-lock {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    color: #fff;
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    font-size: 1.5em;
+}
+
+@media (orientation: portrait) {
+    #orientation-lock {
+        display: flex;
+    }
 }

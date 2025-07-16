@@ -2,6 +2,10 @@ export function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
 }
 
+export function isMobile() {
+    return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
 export class PerlinNoise {
     constructor(seed = Date.now()) {
         this.p = new Array(512);

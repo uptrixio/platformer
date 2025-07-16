@@ -327,13 +327,13 @@ export class Game {
             cameraDirection.normalize();
         }
 
-        const right = new THREE.Vector3().crossVectors(cameraDirection, this.camera.up).normalize();
+        const right = new THREE.Vector3().crossVectors(this.camera.up, cameraDirection).negate();
         const moveSpeed = this.player.isFlying ? this.player.flySpeed : this.player.speed;
         
         if (this.keyboard['KeyW']) moveDirection.add(cameraDirection);
         if (this.keyboard['KeyS']) moveDirection.sub(cameraDirection);
-        if (this.keyboard['KeyA']) moveDirection.add(right);
-        if (this.keyboard['KeyD']) moveDirection.sub(right);
+        if (this.keyboard['KeyA']) moveDirection.sub(right);
+        if (this.keyboard['KeyD']) moveDirection.add(right);
 
         if (moveDirection.length() > 0) {
             moveDirection.normalize().multiplyScalar(moveSpeed);

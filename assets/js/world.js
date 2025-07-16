@@ -9,7 +9,7 @@ export class World {
         this.worldBlocks = new Map();
 
         this.chunkGenerationQueue = [];
-        this.maxChunksToGeneratePerFrame = 2;
+        this.maxChunksToGeneratePerFrame = 1;
         this.gameInstance = null;
         this.onProgress = null;
     }
@@ -118,15 +118,13 @@ export class World {
         while (this.chunkGenerationQueue.length > 0 && generatedCount < this.maxChunksToGeneratePerFrame) {
             const chunk = this.chunkGenerationQueue.shift();
             if (chunk && !chunk.isGenerated) {
-                setTimeout(() => {
-                    chunk.generateGeometry();
-                    if (chunk.mesh) {
-                        this.scene.add(chunk.mesh);
-                    }
-                    if (this.onProgress) {
-                        this.onProgress();
-                    }
-                }, 0);
+                chunk.generateGeometry();
+                if (chunk.mesh) {
+                    this.scene.add(chunk.mesh);
+                }
+                if (this.onProgress) {
+                    this.onProgress();
+                }
                 generatedCount++;
             }
         }
