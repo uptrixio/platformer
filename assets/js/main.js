@@ -50,19 +50,15 @@ async function startGameWithWorld(worldName) {
         }
 
         const gameContainer = document.getElementById('game-container');
-
-        if(worldManager.isWorldGenerated(worldName)) {
+        
+        showLoadingScreen(true);
+        updateLoadingProgress(0);
+        await new Promise(resolve => setTimeout(resolve, 50)); 
+        
+        gameInstance = new Game(gameContainer, worldData.seed, () => {
             showLoadingScreen(false);
-            gameInstance = new Game(gameContainer, worldData.seed, () => {}, false, null, worldData.gameMode);
-        } else {
-            showLoadingScreen(true);
-            updateLoadingProgress(0);
-            await new Promise(resolve => setTimeout(resolve, 50));
-            gameInstance = new Game(gameContainer, worldData.seed, () => {
-                showLoadingScreen(false);
-                worldManager.setWorldAsGenerated(worldName);
-            }, false, updateLoadingProgress, worldData.gameMode);
-        }
+            worldManager.setWorldAsGenerated(worldName);
+        }, false, updateLoadingProgress, worldData.gameMode, worldName);
 
         window.gameInstance = gameInstance;
         gameInstance.setGameActive(true);

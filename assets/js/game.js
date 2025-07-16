@@ -5,7 +5,7 @@ import { World } from './world.js';
 import { MenuManager } from './menu.js';
 
 export class Game {
-    constructor(container, seed, onReady, isMenu = false, onProgress, gameMode = 'survival') {
+    constructor(container, seed, onReady, isMenu = false, onProgress, gameMode = 'survival', worldName) {
         this.container = container;
         setWorldSeed(seed);
         this.onReady = onReady;
@@ -13,6 +13,8 @@ export class Game {
         this.isMenu = isMenu;
         this.menuManager = new MenuManager();
         this.gameMode = gameMode;
+        this.worldName = worldName;
+        this.saveInterval = null;
 
         worldSettings.renderDistance = parseInt(localStorage.getItem('renderDistance') || '8', 10);
 
@@ -78,6 +80,11 @@ export class Game {
             this.animationFrameId = null;
         }
 
+        if (this.saveInterval) {
+            clearInterval(this.saveInterval);
+            this.savePlayerPosition(); 
+        }
+
         document.removeEventListener('keydown', this.keydownListener);
         document.removeEventListener('keyup', this.keyupListener);
         document.removeEventListener('mousemove', this.mousemoveListener);
@@ -108,8 +115,17 @@ export class Game {
             this.playerModel.visible = false;
             this.scene.add(this.playerModel);
 
-            const spawnPoint = this.findSafeSpawn();
-            this.player.mesh.position.copy(spawnPoint);
+            const savedPosition = this.loadPlayerPosition();
+            if (savedPosition) {
+                this.player.mesh.position.copy(savedPosition);
+            } else {
+                const spawnPoint = this.findSafeSpawn();
+                this.player.mesh.position.copy(spawnPoint);
+            }
+            this.camera.rotation.x = 0;
+            this.updateCameraPosition();
+            
+            this.saveInterval = setInterval(() => this.savePlayerPosition(), 5000);
         }
 
         this.camera.rotation.order = 'YXZ';
@@ -132,7 +148,7 @@ export class Game {
     }
     
     findSafeSpawn() {
-        for (let r = 0; r < 60; r++) {
+        for (let r = 0; r < 120; r++) { // Increased radius to find land
             for (let a = 0; a < Math.PI * 2; a += Math.PI / 8) {
                 const x = Math.round(Math.cos(a) * r);
                 const z = Math.round(Math.sin(a) * r);
@@ -316,8 +332,8 @@ export class Game {
         
         if (this.keyboard['KeyW']) moveDirection.add(cameraDirection);
         if (this.keyboard['KeyS']) moveDirection.sub(cameraDirection);
-        if (this.keyboard['KeyA']) moveDirection.sub(right);
-        if (this.keyboard['KeyD']) moveDirection.add(right);
+        if (this.keyboard['KeyA']) moveDirection.add(right);
+        if (this.keyboard['KeyD']) moveDirection.sub(right);
 
         if (moveDirection.length() > 0) {
             moveDirection.normalize().multiplyScalar(moveSpeed);
@@ -459,5 +475,25 @@ export class Game {
         this.setRenderDistance(parseInt(renderDistance, 10));
         document.getElementById('renderDistanceRange').value = renderDistance;
         document.getElementById('renderDistanceValue').textContent = renderDistance;
+    }
+
+    savePlayerPosition() {
+        if (this.player.mesh && this.worldName) {
+            const pos = {
+                x: this.player.mesh.position.x,
+                y: this.player.mesh.position.y,
+                z: this.player.mesh.position.z,
+            };
+            localStorage.setItem(`playerPos_${this.worldName}`, JSON.stringify(pos));
+        }
+    }
+
+    loadPlayerPosition() {
+        const savedPos = localStorage.getItem(`playerPos_${this.worldName}`);
+        if (savedPos) {
+            const pos = JSON.parse(savedPos);
+            return new THREE.Vector3(pos.x, pos.y, pos.z);
+        }
+        return null;
     }
 }
