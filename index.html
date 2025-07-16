@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platformer</title>
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@700&family=Unbounded:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container"></div>
+    <div id="debug-info"></div>
+    <div id="loading-screen">
+        <h1 data-translate="Generating World...">Generating World...</h1>
+        <div id="progressBarContainer">
+            <div id="progressBar"></div>
+            <span id="progressText">0%</span>
+        </div>
+    </div>
+    <div id="ui-container">
+        <div id="main-menu" class="menu-screen active">
+            <h1 class="logo" data-translate="Platformer">Platformer</h1>
+            <div class="menu-buttons">
+                <button id="playButton" data-translate="Play">Play</button>
+                <button id="settingsButton" data-translate="Settings">Settings</button>
+                <button id="aboutButton" data-translate="About">About</button>
+            </div>
+        </div>
+
+        <div id="pause-menu" class="menu-screen">
+            <h2 class="menu-title" data-translate="Paused">Paused</h2>
+            <button id="resumeButton" data-translate="Resume">Resume</button>
+            <button id="backToMainFromPause" data-translate="Main Menu">Main Menu</button>
+        </div>
+
+        <div id="world-select-menu" class="menu-screen">
+            <h2 class="menu-title" data-translate="Select World">Select World</h2>
+            <ul id="worldList" class="world-list"></ul>
+            <div class="new-world-form">
+                <input type="text" id="worldNameInput" data-translate="Enter new world name..." placeholder="Enter new world name...">
+                <select id="gameModeSelect">
+                    <option value="survival" data-translate="Survival">Survival</option>
+                    <option value="creative" data-translate="Creative">Creative</option>
+                </select>
+                <button id="createWorldButton" data-translate="Create New World">Create New World</button>
+            </div>
+            <button id="backToMainFromWorlds" data-translate="Back">Back</button>
+        </div>
+
+        <div id="settings-menu" class="menu-screen">
+            <h2 class="menu-title" data-translate="Settings">Settings</h2>
+            <div class="setting-item">
+                <label for="fovRange" data-translate="Field of View (FOV):">Field of View (FOV):</label>
+                <span id="fovValue">90</span>
+                <input type="range" id="fovRange" min="60" max="120" value="90">
+            </div>
+            <div class="setting-item">
+                <label for="sensitivityRange" data-translate="Mouse Sensitivity:">Mouse Sensitivity:</label>
+                <span id="sensitivityValue">1.0</span>
+                <input type="range" id="sensitivityRange" min="0.5" max="3" step="0.1" value="1.0">
+            </div>
+            <div class="setting-item">
+                <label for="renderDistanceRange" data-translate="Render Distance:">Render Distance:</label>
+                <span id="renderDistanceValue">8</span>
+                <input type="range" id="renderDistanceRange" min="2" max="16" value="8">
+            </div>
+            <div class="setting-item">
+                <label for="languageSelect" data-translate="Language:">Language:</label>
+                <select id="languageSelect">
+                    <option value="en">English</option>
+                    <option value="ru">Русский</option>
+                    <option value="zh">中文</option>
+                </select>
+            </div>
+            <button id="backToMainFromSettings" data-translate="Back">Back</button>
+        </div>
+
+        <div id="about-menu" class="menu-screen">
+            <h2 class="menu-title" data-translate="About Game">About</h2>
+            <p data-translate="Built with Three.js">This is a simple voxel-based game built with Three.js.</p>
+            <p data-translate="Developed by Timur.">Developed by Timur.</p>
+            <button id="backToMainFromAbout" data-translate="Back">Back</button>
+        </div>
+    </div>
+
+    <script type="module" src="assets/js/main.js"></script>
+</body>
+</html>
