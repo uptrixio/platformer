@@ -22,7 +22,8 @@ export const translations = {
         'Survival': 'Survival',
         'Creative': 'Creative',
         'No worlds yet...': 'No worlds created yet.',
-        'Delete': 'Delete'
+        'Delete': 'Delete',
+        'Nickname:': 'Nickname:'
     },
     'ru': {
         'Platformer': 'Платформер',
@@ -47,7 +48,8 @@ export const translations = {
         'Survival': 'Выживание',
         'Creative': 'Креатив',
         'No worlds yet...': 'Миры еще не созданы.',
-        'Delete': 'Удалить'
+        'Delete': 'Удалить',
+        'Nickname:': 'Никнейм:'
     },
     'zh': {
         'Platformer': '平台游戏',
@@ -72,7 +74,8 @@ export const translations = {
         'Survival': '生存',
         'Creative': '创造',
         'No worlds yet...': '还没有创建世界。',
-        'Delete': '删除'
+        'Delete': '删除',
+        'Nickname:': '昵称：'
     }
 };
 
@@ -92,11 +95,12 @@ export function updateUIText() {
     document.querySelectorAll('[data-translate]').forEach(el => {
         const key = el.dataset.translate;
         const translation = t(key);
-        if (el.tagName === 'INPUT' && 'placeholder' in el) {
-            el.placeholder = translation;
-        } else {
-            el.textContent = translation;
-        }
+        el.textContent = translation;
+    });
+     document.querySelectorAll('[data-translate-placeholder]').forEach(el => {
+        const key = el.dataset.translatePlaceholder;
+        const translation = t(key);
+        el.placeholder = translation;
     });
 }
 

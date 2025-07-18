@@ -15,6 +15,19 @@ body {
     z-index: 0;
 }
 
+#crosshair {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    font-size: 24px;
+    pointer-events: none;
+    display: none;
+    z-index: 8;
+    text-shadow: 1px 1px 2px black;
+}
+
 #debug-info {
     position: absolute;
     top: 10px;
@@ -162,6 +175,11 @@ input, select {
     font-family: 'Geist Mono', monospace;
 }
 
+input[type="text"] {
+    width: calc(100% - 18px);
+}
+
+
 .world-list {
     list-style: none;
     padding: 0;
@@ -247,26 +265,27 @@ input, select {
 }
 
 #joystick-container {
-    width: 150px;
-    height: 150px;
+    width: 120px;
+    height: 120px;
     background-color: rgba(255, 255, 255, 0.2);
     border-radius: 50%;
     position: relative;
+    left: 20px;
 }
 
 #joystick-stick {
-    width: 60px;
-    height: 60px;
+    width: 50px;
+    height: 50px;
     background-color: rgba(255, 255, 255, 0.5);
     border-radius: 50%;
     position: absolute;
-    top: 45px;
-    left: 45px;
+    top: 35px;
+    left: 35px;
 }
 
 #jump-button {
-    width: 80px;
-    height: 80px;
+    width: 70px;
+    height: 70px;
     background-color: rgba(76, 175, 80, 0.7);
     border-radius: 50%;
     color: white;
@@ -291,8 +310,148 @@ input, select {
     font-size: 1.5em;
 }
 
+#hotbar-container {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: none;
+    flex-direction: row;
+    background-color: rgba(0, 0, 0, 0.5);
+    border: 2px solid #555;
+    border-radius: 5px;
+    z-index: 7;
+}
+
+.hotbar-slot {
+    width: 50px;
+    height: 50px;
+    border: 2px solid #333;
+    margin: 2px;
+    background-size: cover;
+    background-position: center;
+    color: white;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    font-size: 10px;
+    user-select: none;
+    transition: transform 0.1s, border-color 0.1s;
+    text-shadow: 1px 1px 2px black;
+    font-weight: bold;
+    padding-bottom: 2px;
+}
+
+.hotbar-slot.active {
+    border-color: #fff;
+    transform: scale(1.1);
+}
+
+#creative-inventory-menu {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 600px;
+    height: 70%;
+    background-color: rgba(34, 34, 34, 0.95);
+    border: 2px solid #555;
+    border-radius: 8px;
+    padding: 20px;
+    display: none;
+    flex-direction: column;
+    z-index: 20;
+    box-sizing: border-box;
+}
+
+#inventory-search {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+#creative-inventory-grid {
+    flex-grow: 1;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+    gap: 10px;
+    overflow-y: auto;
+}
+
+.inventory-item {
+    width: 60px;
+    height: 60px;
+    background-color: #444;
+    border: 2px solid #666;
+    cursor: grab;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 12px;
+    text-align: center;
+    color: white;
+    user-select: none;
+    background-size: 80%;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.inventory-item:active {
+    cursor: grabbing;
+}
+
+#creative-inventory-grid::-webkit-scrollbar {
+    display: none;
+}
+
+#creative-inventory-grid {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
 @media (orientation: portrait) {
     #orientation-lock {
         display: flex;
+    }
+}
+
+@media (max-width: 600px) {
+    .menu-screen {
+        min-width: 90%;
+        padding: 20px;
+    }
+
+    .logo {
+        font-size: 2em;
+        margin-bottom: 20px;
+    }
+
+    .menu-title {
+        font-size: 1.5em;
+    }
+
+    button {
+        padding: 12px;
+        font-size: 1em;
+    }
+
+    .setting-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .setting-item label {
+        margin-bottom: 8px;
+    }
+
+    .setting-item input[type="range"],
+    .setting-item select {
+        width: 100%;
+    }
+
+    #hotbar-container {
+        bottom: 100px;
     }
 }

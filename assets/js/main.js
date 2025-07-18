@@ -3,143 +3,174 @@ import { MenuManager } from './menu.js';
 import { WorldManager } from './worldManager.js';
 import { setLanguage, updateUIText, getCurrentLanguage } from './localization.js';
 
-let gameInstance = null;
-let menuManager;
-let worldManager;
-let loadingScreen;
-let menuGameInstance = null;
-let currentWorldName = null;
-
-function showLoadingScreen(show) {
-    loadingScreen.style.display = show ? 'flex' : 'none';
-}
-
-function updateLoadingProgress(progress) {
-    const progressBar = document.getElementById('progressBar');
-    const progressText = document.getElementById('progressText');
-    const p = Math.round(progress * 100);
-    progressBar.style.width = `${p}%`;
-    progressText.textContent = `${p}%`;
-}
-
-function showMainMenu() {
-    if (gameInstance) {
-        gameInstance.dispose();
-        gameInstance = null;
+class Main {
+    constructor() {
+        this.gameInstance = null;
+        this.menuGameInstance = null;
+        this.menuManager = new MenuManager();
+        this.worldManager = new WorldManager();
+        this.loadingScreen = document.getElementById('loading-screen');
+        this.gameContainer = document.getElementById('game-container');
+        this.init();
     }
-    if (!menuGameInstance) {
-        const gameContainer = document.getElementById('game-container');
-        menuGameInstance = new Game(gameContainer, 'menu_seed', () => {}, true);
+
+    init() {
+        this.setupEventListeners();
+        this.showMainMenu();
+        updateUIText();
     }
-    menuManager.showScreen(menuManager.mainMenu);
-}
 
-function showWorldSelection() {
-    worldManager.renderWorldList();
-    menuManager.showScreen(menuManager.worldSelectMenu);
-}
+    setupEventListeners() {
+        this.menuManager.onPlay = () => this.showWorldSelection();
+        this.menuManager.onBackToMain = () => this.showMainMenu();
+        this.menuManager.onResume = () => this.resumeGame();
 
-async function startGameWithWorld(worldName) {
-    currentWorldName = worldName;
-    const worldData = worldManager.getWorld(worldName);
+        document.getElementById('createWorldButton').addEventListener('click', () => {
+            const nameInput = document.getElementById('worldNameInput');
+            const worldName = nameInput.value.trim();
+            const gameMode = document.getElementById('gameModeSelect').value;
+            if (worldName) {
+                if (this.worldManager.createWorld(worldName, gameMode)) {
+                    nameInput.value = '';
+                    this.startGameWithWorld(worldName);
+                } else {
+                    alert('World with this name already exists.');
+                }
+            }
+        });
 
-    if (worldData) {
-        if(menuGameInstance) {
-            menuGameInstance.dispose();
-            menuGameInstance = null;
+        document.getElementById('worldList').addEventListener('click', (event) => {
+            const target = event.target;
+            if (target.classList.contains('delete-world-button')) {
+                event.stopPropagation();
+                const worldName = target.dataset.world;
+                if (confirm(`Are you sure you want to delete world "${worldName}"?`)) {
+                    this.worldManager.deleteWorld(worldName);
+                    this.worldManager.renderWorldList();
+                }
+            } else {
+                const listItem = target.closest('.world-list-item');
+                if (listItem) {
+                    const worldName = listItem.dataset.world;
+                    this.startGameWithWorld(worldName);
+                }
+            }
+        });
+
+        const nicknameInput = document.getElementById('nicknameInput');
+        nicknameInput.value = localStorage.getItem('nickname') || '';
+        nicknameInput.addEventListener('input', () => {
+            localStorage.setItem('nickname', nicknameInput.value);
+            if (this.gameInstance) {
+                this.gameInstance.updatePlayerNickname(nicknameInput.value);
+            }
+        });
+        
+        const fovRange = document.getElementById('fovRange');
+        fovRange.addEventListener('input', () => this.updateSetting('fov', fovRange.value, 'fovValue', 0));
+
+        const sensitivityRange = document.getElementById('sensitivityRange');
+        sensitivityRange.addEventListener('input', () => this.updateSetting('mouseSensitivity', sensitivityRange.value, 'sensitivityValue', 1));
+
+        const renderDistanceRange = document.getElementById('renderDistanceRange');
+        renderDistanceRange.addEventListener('input', () => this.updateSetting('renderDistance', renderDistanceRange.value, 'renderDistanceValue'));
+        
+        const languageSelect = document.getElementById('languageSelect');
+        languageSelect.value = getCurrentLanguage();
+        languageSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+    }
+
+    updateSetting(key, value, valueSpanId, toFixed = null) {
+        localStorage.setItem(key, value);
+        const span = document.getElementById(valueSpanId);
+        if (toFixed !== null) {
+             span.textContent = parseFloat(value).toFixed(toFixed);
+        } else {
+             span.textContent = value;
         }
 
-        const gameContainer = document.getElementById('game-container');
-        
-        showLoadingScreen(true);
-        updateLoadingProgress(0);
-        await new Promise(resolve => setTimeout(resolve, 50)); 
-        
-        gameInstance = new Game(gameContainer, worldData.seed, () => {
-            showLoadingScreen(false);
-            worldManager.setWorldAsGenerated(worldName);
-        }, false, updateLoadingProgress, worldData.gameMode, worldName);
-
-        window.gameInstance = gameInstance;
-        gameInstance.setGameActive(true);
+        if (this.gameInstance && !this.gameInstance.isMenu) {
+            this.gameInstance.applySetting(key, value);
+        }
+        if (this.menuGameInstance) {
+             this.menuGameInstance.applySetting(key, value);
+        }
     }
-}
 
-function resumeGame() {
-    if (gameInstance) {
-        gameInstance.setGameActive(true);
+    showLoadingScreen(show) {
+        this.loadingScreen.style.display = show ? 'flex' : 'none';
+    }
+
+    updateLoadingProgress(progress) {
+        const progressBar = document.getElementById('progressBar');
+        const progressText = document.getElementById('progressText');
+        const p = Math.round(progress * 100);
+        progressBar.style.width = `${p}%`;
+        progressText.textContent = `${p}%`;
+    }
+
+    showMainMenu() {
+        if (this.gameInstance) {
+            this.gameInstance.dispose();
+            this.gameInstance = null;
+        }
+
+        ['hotbar-container', 'creative-inventory-menu', 'crosshair'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        if (!this.menuGameInstance) {
+            this.menuGameInstance = new Game(this.gameContainer, { isMenu: true });
+        }
+        this.menuManager.showScreen('main-menu');
+    }
+
+    showWorldSelection() {
+        this.worldManager.renderWorldList();
+        this.menuManager.showScreen('world-select-menu');
+    }
+
+    startGameWithWorld(worldName) {
+        const worldData = this.worldManager.getWorld(worldName);
+        if (!worldData) return;
+
+        this.menuManager.showScreen(null);
+
+        if (this.menuGameInstance) {
+            this.menuGameInstance.dispose();
+            this.menuGameInstance = null;
+        }
+        
+        const onReady = () => {
+            this.showLoadingScreen(false);
+            if (!worldData.generated) {
+                this.worldManager.setWorldAsGenerated(worldName);
+            }
+        };
+        
+        if (!worldData.generated) {
+            this.showLoadingScreen(true);
+            this.updateLoadingProgress(0);
+        }
+        
+        setTimeout(() => {
+            this.gameInstance = new Game(this.gameContainer, {
+                isMenu: false,
+                worldData: worldData,
+                onReady: onReady,
+                onProgress: (p) => this.updateLoadingProgress(p)
+            });
+        }, 50);
+    }
+
+    resumeGame() {
+        if (this.gameInstance) {
+            this.gameInstance.resume();
+        }
     }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadingScreen = document.getElementById('loading-screen');
-    menuManager = new MenuManager();
-    worldManager = new WorldManager();
-
-    showMainMenu();
-
-    menuManager.onPlay = showWorldSelection;
-    menuManager.onBackToMain = showMainMenu;
-    menuManager.onResume = resumeGame;
-
-    document.getElementById('createWorldButton').addEventListener('click', () => {
-        const nameInput = document.getElementById('worldNameInput');
-        const worldName = nameInput.value.trim();
-        const gameMode = document.getElementById('gameModeSelect').value;
-        if (worldName) {
-            worldManager.createWorld(worldName, gameMode);
-            nameInput.value = '';
-            worldManager.renderWorldList();
-        }
-    });
-
-    document.getElementById('worldList').addEventListener('click', (event) => {
-        const target = event.target;
-        const listItem = target.closest('.world-list-item');
-        if (target.classList.contains('delete-world-button')) {
-            event.stopPropagation();
-            const worldName = target.dataset.world;
-            if (confirm(`Are you sure you want to delete world "${worldName}"?`)) {
-                worldManager.deleteWorld(worldName);
-                worldManager.renderWorldList();
-            }
-        } else if (listItem) {
-            const worldName = listItem.dataset.world;
-            startGameWithWorld(worldName);
-        }
-    });
-
-    const fovRange = document.getElementById('fovRange');
-    const fovValueSpan = document.getElementById('fovValue');
-    fovRange.addEventListener('input', () => {
-        const fov = parseFloat(fovRange.value);
-        fovValueSpan.textContent = fov.toFixed(0);
-        localStorage.setItem('fov', fov);
-        if (gameInstance && !gameInstance.isMenu) gameInstance.setFOV(fov);
-    });
-
-    const sensitivityRange = document.getElementById('sensitivityRange');
-    const sensitivityValueSpan = document.getElementById('sensitivityValue');
-    sensitivityRange.addEventListener('input', () => {
-        const sensitivity = parseFloat(sensitivityRange.value);
-        sensitivityValueSpan.textContent = sensitivity.toFixed(1);
-        localStorage.setItem('mouseSensitivity', sensitivity);
-    });
-
-    const renderDistanceRange = document.getElementById('renderDistanceRange');
-    const renderDistanceValueSpan = document.getElementById('renderDistanceValue');
-    renderDistanceRange.addEventListener('input', () => {
-        const distance = parseInt(renderDistanceRange.value, 10);
-        renderDistanceValueSpan.textContent = distance;
-        localStorage.setItem('renderDistance', distance);
-        if (gameInstance && !gameInstance.isMenu) gameInstance.setRenderDistance(distance);
-    });
-
-    const languageSelect = document.getElementById('languageSelect');
-    languageSelect.value = getCurrentLanguage();
-    languageSelect.addEventListener('change', (e) => {
-        setLanguage(e.target.value);
-    });
-
-    updateUIText();
+    new Main();
 });

@@ -1,3 +1,5 @@
+import * as THREE from 'three';
+
 export function clamp(value, min, max) {
     return Math.max(min, Math.min(value, max));
 }
@@ -14,8 +16,15 @@ export class PerlinNoise {
             this.permutation[i] = i;
         }
 
+        let prng = () => {
+             let t = seed += 0x6D2B79F5;
+             t = Math.imul(t ^ t >>> 15, t | 1);
+             t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+             return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        };
+        
         for (let i = 255; i > 0; i--) {
-            const r = Math.floor(Math.random() * (i + 1));
+            const r = Math.floor(prng() * (i + 1));
             const temp = this.permutation[i];
             this.permutation[i] = this.permutation[r];
             this.permutation[r] = temp;

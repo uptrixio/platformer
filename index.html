@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Platformer</title>
     <link rel="stylesheet" href="assets/css/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@700&family=Unbounded:wght@700&display=swap" rel="stylesheet">
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "./assets/js/vendor/three.module.js",
+                "simplex-noise": "./assets/js/vendor/simplex-noise.js",
+                "buffer-geometry-utils": "./assets/js/utils/BufferGeometryUtils.js"
+            }
+        }
+    </script>
 </head>
 <body>
     <div id="game-container"></div>
+    <div id="crosshair">+</div>
     <div id="debug-info"></div>
     <div id="loading-screen">
         <h1 data-translate="Generating World...">Generating World...</h1>
@@ -28,18 +38,16 @@
                 <button id="aboutButton" data-translate="About">About</button>
             </div>
         </div>
-
         <div id="pause-menu" class="menu-screen">
             <h2 class="menu-title" data-translate="Paused">Paused</h2>
             <button id="resumeButton" data-translate="Resume">Resume</button>
             <button id="backToMainFromPause" data-translate="Main Menu">Main Menu</button>
         </div>
-
         <div id="world-select-menu" class="menu-screen">
             <h2 class="menu-title" data-translate="Select World">Select World</h2>
             <ul id="worldList" class="world-list"></ul>
             <div class="new-world-form">
-                <input type="text" id="worldNameInput" data-translate="Enter new world name..." placeholder="Enter new world name...">
+                <input type="text" id="worldNameInput" data-translate-placeholder="Enter new world name..." placeholder="Enter new world name...">
                 <select id="gameModeSelect">
                     <option value="survival" data-translate="Survival">Survival</option>
                     <option value="creative" data-translate="Creative">Creative</option>
@@ -48,9 +56,12 @@
             </div>
             <button id="backToMainFromWorlds" data-translate="Back">Back</button>
         </div>
-
         <div id="settings-menu" class="menu-screen">
             <h2 class="menu-title" data-translate="Settings">Settings</h2>
+            <div class="setting-item">
+                <label for="nicknameInput" data-translate="Nickname:">Nickname:</label>
+                <input type="text" id="nicknameInput" placeholder="Enter your nickname...">
+            </div>
             <div class="setting-item">
                 <label for="fovRange" data-translate="Field of View (FOV):">Field of View (FOV):</label>
                 <span id="fovValue">90</span>
@@ -76,15 +87,25 @@
             </div>
             <button id="backToMainFromSettings" data-translate="Back">Back</button>
         </div>
-
         <div id="about-menu" class="menu-screen">
             <h2 class="menu-title" data-translate="About Game">About</h2>
-            <p data-translate="Built with Three.js">This is a simple voxel-based game built with Three.js.</p>
-            <p data-translate="Developed by Timur.">Developed by Timur.</p>
+            <p data-translate="Built with Three.js">This is a Platformer voxel-based game built with Three.js.</p>
+            <p data-translate="Developed by Timur.">Developed by uptrix</p>
             <button id="backToMainFromAbout" data-translate="Back">Back</button>
         </div>
     </div>
-
+    <div id="hotbar-container"></div>
+    <div id="creative-inventory-menu">
+        <input type="text" id="inventory-search" placeholder="Search blocks...">
+        <div id="creative-inventory-grid"></div>
+    </div>
+    <div id="mobile-controls">
+        <div id="joystick-container">
+            <div id="joystick-stick"></div>
+        </div>
+        <button id="jump-button"></button>
+    </div>
+    <div id="orientation-lock">Please rotate your device to landscape mode.</div>
     <script type="module" src="assets/js/main.js"></script>
 </body>
 </html>

@@ -17,18 +17,30 @@ export class WorldManager {
 
     createWorld(name, gameMode = 'survival') {
         if (this.worlds[name]) {
-            alert('World with this name already exists.');
-            return;
+            return false;
         }
         const seed = Math.random().toString(36).substring(7);
-        this.worlds[name] = { name, seed, gameMode, createdAt: new Date().toISOString(), generated: false };
+        this.worlds[name] = { 
+            name, 
+            seed, 
+            gameMode, 
+            createdAt: new Date().toISOString(),
+            generated: false 
+        };
         this.saveWorldsToStorage();
+        return true;
     }
 
     deleteWorld(name) {
         if (this.worlds[name]) {
             delete this.worlds[name];
-            localStorage.removeItem(`world_${name}_chunks`);
+            localStorage.removeItem(`playerState_${name}`);
+            
+            const chunkPrefix = `chunk_${name}_`;
+            Object.keys(localStorage)
+                .filter(key => key.startsWith(chunkPrefix))
+                .forEach(key => localStorage.removeItem(key));
+
             this.saveWorldsToStorage();
         }
     }
@@ -37,10 +49,6 @@ export class WorldManager {
         return this.worlds[name];
     }
     
-    isWorldGenerated(name) {
-        return this.worlds[name] && this.worlds[name].generated;
-    }
-
     setWorldAsGenerated(name) {
         if (this.worlds[name]) {
             this.worlds[name].generated = true;

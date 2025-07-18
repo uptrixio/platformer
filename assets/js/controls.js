@@ -1,0 +1,225 @@
+import * as THREE from 'three';
+import { clamp, isMobile } from './utils.js';
+
+export class Controls {
+    constructor(game) {
+        this.game = game;
+        this.camera = game.camera;
+        this.player = game.player;
+        this.domElement = game.renderer.domElement;
+        
+        this.isLocked = false;
+        this.onLock = () => {};
+        this.onUnlock = () => {};
+        
+        this.phi = 0;
+        this.theta = 0;
+        this.sensitivity = parseFloat(localStorage.getItem('mouseSensitivity') || '1.0');
+        this.thirdPersonView = false;
+        this.thirdPersonDistance = 5;
+        
+        this.keyboard = {};
+        this.lastSpacePress = 0;
+        
+        this.init();
+    }
+    
+    init() {
+        this.camera.rotation.order = 'YXZ'; 
+        document.addEventListener('pointerlockchange', () => this.onPointerlockChange(), false);
+        document.addEventListener('mousemove', (e) => this.onMouseMove(e), false);
+        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+        document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
+        document.addEventListener('mousedown', (e) => this.onMouseDown(e), false);
+        document.addEventListener('wheel', (e) => this.onMouseWheel(e), { passive: false });
+        
+        if (isMobile()) {
+            this.initMobileControls();
+        }
+    }
+    
+    lock() {
+        return this.domElement.requestPointerLock();
+    }
+    
+    unlock() {
+        document.exitPointerLock();
+    }
+    
+    onPointerlockChange() {
+        if (document.pointerLockElement === this.domElement) {
+            this.isLocked = true;
+            this.onLock();
+        } else {
+            this.isLocked = false;
+            this.onUnlock();
+        }
+    }
+
+    onMouseMove(event) {
+        if (!this.isLocked) return;
+        const movementX = event.movementX || 0;
+        const movementY = event.movementY || 0;
+
+        this.phi -= movementX * 0.002 * this.sensitivity;
+        this.theta -= movementY * 0.002 * this.sensitivity;
+        this.theta = clamp(this.theta, -Math.PI / 2, Math.PI / 2);
+    }
+    
+    updateCameraPosition() {
+        this.camera.rotation.set(this.theta, this.phi, 0, 'YXZ');
+
+        const lookAtPosition = new THREE.Vector3().copy(this.player.position);
+        lookAtPosition.y += this.player.height * 0.3;
+
+        if (this.thirdPersonView) {
+            const offset = new THREE.Vector3(0, 1.2, this.thirdPersonDistance);
+            offset.applyEuler(this.camera.rotation);
+            this.camera.position.copy(this.player.position).add(offset);
+        } else {
+            this.camera.position.copy(this.player.position);
+            this.camera.position.y += this.player.height * 0.4;
+        }
+    }
+
+    onKeyDown(event) {
+        this.keyboard[event.code] = true;
+        
+        if (event.code === 'Escape') {
+            if (this.game.creativeInventory && this.game.creativeInventory.isOpen) {
+                this.game.creativeInventory.toggle();
+                return;
+            }
+            if (this.isLocked) {
+                this.unlock();
+            }
+        }
+        
+        if (event.code === 'KeyF' && this.game.worldData.gameMode === 'creative') {
+            if (this.game.creativeInventory) {
+                this.game.creativeInventory.toggle();
+            }
+        }
+        
+        if (event.code === 'Space') {
+            const now = Date.now();
+            if (this.game.worldData.gameMode === 'creative' && now - this.lastSpacePress < 300) {
+                this.player.toggleFly();
+            } else if (!this.player.isFlying) {
+                this.player.jump();
+            }
+            this.lastSpacePress = now;
+        }
+
+        if (event.code === 'F2') {
+            this.thirdPersonView = !this.thirdPersonView;
+        }
+        
+        if (event.code.startsWith('Digit')) {
+            const index = parseInt(event.code.replace('Digit', ''), 10) - 1;
+            if (index >= 0 && index < 5 && this.game.hotbar) {
+                this.game.hotbar.selectSlot(index);
+            }
+        }
+    }
+    
+    onKeyUp(event) {
+        this.keyboard[event.code] = false;
+    }
+    
+    onMouseDown(event) {
+        if (!this.isLocked) return;
+        const isPlacement = event.button === 2;
+        const isBreaking = event.button === 0;
+
+        if (isPlacement || isBreaking) {
+            this.game.world.handleBlockInteraction(this.camera, isPlacement, this.game.hotbar.getActiveItem());
+        }
+    }
+
+    onMouseWheel(event) {
+        if(!this.isLocked) return;
+        event.preventDefault();
+        const direction = Math.sign(event.deltaY);
+        if (this.game.hotbar) this.game.hotbar.changeSlot(direction);
+    }
+    
+    getMoveDirection(allowFlyingY = false) {
+        const direction = new THREE.Vector3();
+        if (this.keyboard['KeyW']) direction.z = -1;
+        if (this.keyboard['KeyS']) direction.z = 1;
+        if (this.keyboard['KeyA']) direction.x = -1;
+        if (this.keyboard['KeyD']) direction.x = 1;
+
+        if (allowFlyingY) {
+            if (this.keyboard['Space']) direction.y = 1;
+            if (this.keyboard['ShiftLeft']) direction.y = -1;
+        }
+
+        direction.normalize();
+        
+        const euler = new THREE.Euler(0, this.phi, 0, 'YXZ');
+        direction.applyEuler(euler);
+        
+        return direction;
+    }
+
+    initMobileControls() {
+        document.getElementById('mobile-controls').style.display = 'flex';
+        const joystickContainer = document.getElementById('joystick-container');
+        const joystickStick = document.getElementById('joystick-stick');
+        const jumpButton = document.getElementById('jump-button');
+
+        jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); this.onKeyDown({ code: 'Space' }); }, {passive: false});
+        jumpButton.addEventListener('touchend', (e) => { e.preventDefault(); this.onKeyUp({ code: 'Space' }); }, { passive: false });
+        
+        let joystickActive = false;
+        let joystickStart = {x: 0, y: 0};
+        
+        joystickContainer.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            joystickActive = true;
+            joystickStart.x = e.touches[0].clientX;
+            joystickStart.y = e.touches[0].clientY;
+        }, {passive: false});
+
+        joystickContainer.addEventListener('touchmove', (e) => {
+            if(!joystickActive) return;
+            e.preventDefault();
+            const touch = e.touches[0];
+            let dx = touch.clientX - joystickStart.x;
+            let dy = touch.clientY - joystickStart.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const maxDist = joystickContainer.offsetWidth / 2 - joystickStick.offsetWidth / 2;
+
+            if(distance > maxDist) {
+                dx *= maxDist / distance;
+                dy *= maxDist / distance;
+            }
+            
+            joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+
+            const angle = Math.atan2(dy, dx);
+            const deadzone = 0.2;
+            const mag = Math.min(1, distance / maxDist);
+            
+            this.keyboard['KeyW'] = this.keyboard['KeyS'] = this.keyboard['KeyA'] = this.keyboard['KeyD'] = false;
+            if (mag > deadzone) {
+                 if (angle > -Math.PI * 0.75 && angle < -Math.PI * 0.25) this.keyboard['KeyW'] = true;
+                 if (angle > Math.PI * 0.25 && angle < Math.PI * 0.75) this.keyboard['KeyS'] = true;
+                 if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25) this.keyboard['KeyD'] = true;
+                 if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) this.keyboard['KeyA'] = true;
+            }
+        }, {passive: false});
+
+        const endJoystick = (e) => {
+            e.preventDefault();
+            joystickActive = false;
+            joystickStick.style.transform = 'translate(0,0)';
+            this.keyboard['KeyW'] = this.keyboard['KeyS'] = this.keyboard['KeyA'] = this.keyboard['KeyD'] = false;
+        }
+
+        joystickContainer.addEventListener('touchend', endJoystick);
+        joystickContainer.addEventListener('touchcancel', endJoystick);
+    }
+}
