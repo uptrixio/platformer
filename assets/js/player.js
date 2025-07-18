@@ -19,7 +19,7 @@ export class Player {
         this.gravity = -25;
         
         this.onGround = false;
-        this.isFlying = false; // Игрок всегда начинает на земле, даже в креативе
+        this.isFlying = false;
         this.isSwimming = false;
         
         this.nickname = localStorage.getItem('nickname') || 'Player';
@@ -127,6 +127,8 @@ export class Player {
             this.handleWalking(delta);
         }
         
+        this.onGround = false;
+        
         const subSteps = 5;
         const subDelta = delta / subSteps;
         for (let i = 0; i < subSteps; i++) {
@@ -191,8 +193,6 @@ export class Player {
             new THREE.Vector3(this.width, this.height, this.depth)
         );
         
-        this.onGround = false;
-        
         const minX = Math.floor(playerBox.min.x);
         const maxX = Math.ceil(playerBox.max.x);
         const minY = Math.floor(playerBox.min.y);
@@ -228,7 +228,9 @@ export class Player {
                                 pos.x += centerPlayer.x > centerBlock.x ? overlap.x : -overlap.x;
                                 vel.x = 0;
                             } else if (overlap.y < overlap.x && overlap.y < overlap.z) {
-                                if (vel.y < 0 && centerPlayer.y > centerBlock.y) this.onGround = true;
+                                if (vel.y <= 0 && centerPlayer.y > centerBlock.y) {
+                                    this.onGround = true;
+                                }
                                 pos.y += centerPlayer.y > centerBlock.y ? overlap.y : -overlap.y;
                                 vel.y = 0;
                             } else {
