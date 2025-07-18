@@ -54,7 +54,7 @@ export class Controls {
     }
     
     lock() {
-        if(isMobile() || !this.domElement.isConnected) return;
+        if(isMobile() || !this.domElement.isConnected) return Promise.reject();
         return this.domElement.requestPointerLock();
     }
     
@@ -196,14 +196,12 @@ export class Controls {
 
         jumpButton.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            const now = Date.now();
-            if (this.game.worldData.gameMode === 'creative' && now - this.touch.lastTap < 300) {
-                this.player.toggleFly();
-            } else {
-                 this.player.jump();
-            }
-            this.touch.lastTap = now;
+            this.onKeyDown({ code: 'Space' });
         }, {passive: false});
+        jumpButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.onKeyUp({ code: 'Space' });
+        }, { passive: false });
 
         pauseButton.addEventListener('click', () => this.unlock());
         creativeButton.addEventListener('click', () => {
@@ -241,12 +239,19 @@ export class Controls {
             }
             
             joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
+            
+            this.keyboard['KeyW'] = false;
+            this.keyboard['KeyS'] = false;
+            this.keyboard['KeyA'] = false;
+            this.keyboard['KeyD'] = false;
 
             const angle = Math.atan2(dy, dx);
-            this.keyboard['KeyW'] = angle > -Math.PI * 0.75 && angle < -Math.PI * 0.25;
-            this.keyboard['KeyS'] = angle > Math.PI * 0.25 && angle < Math.PI * 0.75;
-            this.keyboard['KeyD'] = angle > -Math.PI * 0.25 && angle < Math.PI * 0.25;
-            this.keyboard['KeyA'] = angle > Math.PI * 0.75 || angle < -Math.PI * 0.75;
+            if (distance > maxDist * 0.2) {
+                if (angle > -Math.PI * 0.75 && angle < -Math.PI * 0.25) this.keyboard['KeyW'] = true;
+                if (angle > Math.PI * 0.25 && angle < Math.PI * 0.75) this.keyboard['KeyS'] = true;
+                if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25) this.keyboard['KeyD'] = true;
+                if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) this.keyboard['KeyA'] = true;
+            }
         }, {passive: false});
         
         const endJoystick = (e) => {
