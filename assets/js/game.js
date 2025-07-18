@@ -23,7 +23,10 @@ export class Game {
         this.initRenderer();
         this.initScene();
         
-        const renderDistance = this.isMenu ? 4 : (parseInt(localStorage.getItem('renderDistance')) || 8);
+        let renderDistance = this.isMenu ? 4 : (parseInt(localStorage.getItem('renderDistance')) || 8);
+        if (isMobile() && !this.isMenu) {
+            renderDistance = 4; // Принудительное снижение дальности прорисовки на мобильных
+        }
         this.world = new World(this, renderDistance);
 
         if (!this.isMenu) {
@@ -42,8 +45,9 @@ export class Game {
     }
 
     initRenderer() {
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
-        this.renderer.setPixelRatio(window.devicePixelRatio);
+        const mobileOptimizations = isMobile() ? { antialias: false, powerPreference: 'low-power' } : { antialias: true, powerPreference: 'high-performance' };
+        this.renderer = new THREE.WebGLRenderer({ ...mobileOptimizations });
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Ограничение плотности пикселей
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setClearColor(0x87CEEB);
         this.container.appendChild(this.renderer.domElement);
@@ -93,7 +97,7 @@ export class Game {
                 if(this.controls) this.controls.sensitivity = parseFloat(value);
                 break;
             case 'renderDistance':
-                if(this.world) this.world.setRenderDistance(parseInt(value, 10));
+                if(this.world && !isMobile()) this.world.setRenderDistance(parseInt(value, 10));
                 break;
         }
     }
