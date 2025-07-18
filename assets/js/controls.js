@@ -21,29 +21,49 @@ export class Controls {
         this.keyboard = {};
         this.lastSpacePress = 0;
         
+        this.touch = {
+            start: new THREE.Vector2(),
+            end: new THREE.Vector2(),
+            startTime: 0,
+            timer: null,
+            longPressDuration: 500,
+            maxMove: 15
+        };
+
         this.init();
     }
     
     init() {
         this.camera.rotation.order = 'YXZ'; 
-        document.addEventListener('pointerlockchange', () => this.onPointerlockChange(), false);
-        document.addEventListener('mousemove', (e) => this.onMouseMove(e), false);
-        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
-        document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
-        document.addEventListener('mousedown', (e) => this.onMouseDown(e), false);
-        document.addEventListener('wheel', (e) => this.onMouseWheel(e), { passive: false });
         
         if (isMobile()) {
             this.initMobileControls();
+            this.domElement.addEventListener('touchstart', (e) => this.onTouchStart(e), { passive: false });
+            this.domElement.addEventListener('touchmove', (e) => this.onTouchMove(e), { passive: false });
+            this.domElement.addEventListener('touchend', (e) => this.onTouchEnd(e), { passive: false });
+        } else {
+            document.addEventListener('pointerlockchange', () => this.onPointerlockChange(), false);
+            document.addEventListener('mousemove', (e) => this.onMouseMove(e), false);
+            document.addEventListener('mousedown', (e) => this.onMouseDown(e), false);
         }
+        
+        document.addEventListener('keydown', (e) => this.onKeyDown(e), false);
+        document.addEventListener('keyup', (e) => this.onKeyUp(e), false);
+        document.addEventListener('wheel', (e) => this.onMouseWheel(e), { passive: false });
     }
     
     lock() {
+        if(isMobile()) return;
         return this.domElement.requestPointerLock();
     }
     
     unlock() {
-        document.exitPointerLock();
+        if(isMobile()) {
+            this.isLocked = false;
+            this.onUnlock();
+        } else {
+            document.exitPointerLock();
+        }
     }
     
     onPointerlockChange() {
@@ -138,7 +158,7 @@ export class Controls {
     }
 
     onMouseWheel(event) {
-        if(!this.isLocked) return;
+        if(!this.isLocked && !isMobile()) return;
         event.preventDefault();
         const direction = Math.sign(event.deltaY);
         if (this.game.hotbar) this.game.hotbar.changeSlot(direction);
@@ -165,13 +185,23 @@ export class Controls {
     }
 
     initMobileControls() {
-        document.getElementById('mobile-controls').style.display = 'flex';
         const joystickContainer = document.getElementById('joystick-container');
         const joystickStick = document.getElementById('joystick-stick');
         const jumpButton = document.getElementById('jump-button');
+        const pauseButton = document.getElementById('mobile-pause-button');
+        const creativeButton = document.getElementById('mobile-creative-button');
 
-        jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); this.onKeyDown({ code: 'Space' }); }, {passive: false});
-        jumpButton.addEventListener('touchend', (e) => { e.preventDefault(); this.onKeyUp({ code: 'Space' }); }, { passive: false });
+        jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); this.player.jump(); }, {passive: false});
+        pauseButton.addEventListener('click', () => this.unlock());
+        creativeButton.addEventListener('click', () => {
+             if (this.game.creativeInventory) {
+                this.game.creativeInventory.toggle();
+            }
+        });
+
+        if (this.game.worldData.gameMode !== 'creative') {
+            creativeButton.style.display = 'none';
+        }
         
         let joystickActive = false;
         let joystickStart = {x: 0, y: 0};
@@ -200,26 +230,69 @@ export class Controls {
             joystickStick.style.transform = `translate(${dx}px, ${dy}px)`;
 
             const angle = Math.atan2(dy, dx);
-            const deadzone = 0.2;
-            const mag = Math.min(1, distance / maxDist);
-            
-            this.keyboard['KeyW'] = this.keyboard['KeyS'] = this.keyboard['KeyA'] = this.keyboard['KeyD'] = false;
-            if (mag > deadzone) {
-                 if (angle > -Math.PI * 0.75 && angle < -Math.PI * 0.25) this.keyboard['KeyW'] = true;
-                 if (angle > Math.PI * 0.25 && angle < Math.PI * 0.75) this.keyboard['KeyS'] = true;
-                 if (angle > -Math.PI * 0.25 && angle < Math.PI * 0.25) this.keyboard['KeyD'] = true;
-                 if (angle > Math.PI * 0.75 || angle < -Math.PI * 0.75) this.keyboard['KeyA'] = true;
-            }
+            this.keyboard['KeyW'] = angle > -Math.PI * 0.75 && angle < -Math.PI * 0.25;
+            this.keyboard['KeyS'] = angle > Math.PI * 0.25 && angle < Math.PI * 0.75;
+            this.keyboard['KeyD'] = angle > -Math.PI * 0.25 && angle < Math.PI * 0.25;
+            this.keyboard['KeyA'] = angle > Math.PI * 0.75 || angle < -Math.PI * 0.75;
         }, {passive: false});
-
+        
         const endJoystick = (e) => {
-            e.preventDefault();
             joystickActive = false;
             joystickStick.style.transform = 'translate(0,0)';
             this.keyboard['KeyW'] = this.keyboard['KeyS'] = this.keyboard['KeyA'] = this.keyboard['KeyD'] = false;
-        }
+        };
 
         joystickContainer.addEventListener('touchend', endJoystick);
         joystickContainer.addEventListener('touchcancel', endJoystick);
+    }
+    
+    onTouchStart(e) {
+        if (e.target.closest('#mobile-controls, #mobile-top-buttons, #hotbar-container')) {
+            return;
+        }
+        
+        const touch = e.touches[0];
+        this.touch.start.set(touch.clientX, touch.clientY);
+        this.touch.end.set(touch.clientX, touch.clientY);
+        this.touch.startTime = Date.now();
+        
+        this.touch.timer = setTimeout(() => {
+            this.game.world.handleBlockInteraction(this.camera, false, null);
+            this.touch.timer = null;
+        }, this.touch.longPressDuration);
+    }
+
+    onTouchMove(e) {
+        if (this.touch.timer === null && !this.isLocked) return;
+        if (e.target.closest('#mobile-controls, #mobile-top-buttons, #hotbar-container')) {
+            return;
+        }
+        
+        const touch = e.touches[0];
+        const prevX = this.touch.end.x;
+        const prevY = this.touch.end.y;
+        this.touch.end.set(touch.clientX, touch.clientY);
+        
+        const movementX = this.touch.end.x - prevX;
+        const movementY = this.touch.end.y - prevY;
+
+        this.phi -= movementX * 0.004 * this.sensitivity;
+        this.theta -= movementY * 0.004 * this.sensitivity;
+        this.theta = clamp(this.theta, -Math.PI / 2, Math.PI / 2);
+
+        if (this.touch.start.distanceTo(this.touch.end) > this.touch.maxMove) {
+            clearTimeout(this.touch.timer);
+            this.touch.timer = null;
+        }
+    }
+    
+    onTouchEnd(e) {
+        if (this.touch.timer) {
+            clearTimeout(this.touch.timer);
+            const pressDuration = Date.now() - this.touch.startTime;
+            if (pressDuration < this.touch.longPressDuration) {
+                this.game.world.handleBlockInteraction(this.camera, true, this.game.hotbar.getActiveItem());
+            }
+        }
     }
 }

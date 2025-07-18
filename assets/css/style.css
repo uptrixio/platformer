@@ -262,7 +262,13 @@ input[type="text"] {
     padding: 0 20px;
     box-sizing: border-box;
     z-index: 6;
+    pointer-events: none;
 }
+
+#joystick-container, #jump-button, #mobile-pause-button, #mobile-creative-button {
+    pointer-events: all;
+}
+
 
 #joystick-container {
     width: 120px;
@@ -293,6 +299,27 @@ input[type="text"] {
     border: none;
     margin-right: 20px;
 }
+
+#mobile-top-buttons {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 6;
+    display: none;
+}
+
+#mobile-pause-button, #mobile-creative-button {
+    background-color: rgba(0, 0, 0, 0.5);
+    color: white;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    font-size: 1.5em;
+    margin-right: 10px;
+    padding: 0;
+}
+
 
 #orientation-lock {
     display: none;
@@ -417,24 +444,24 @@ input[type="text"] {
     }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 800px) {
     .menu-screen {
         min-width: 90%;
         padding: 20px;
     }
 
     .logo {
-        font-size: 2em;
+        font-size: 2.2em;
         margin-bottom: 20px;
     }
 
     .menu-title {
-        font-size: 1.5em;
+        font-size: 1.8em;
     }
 
     button {
-        padding: 12px;
-        font-size: 1em;
+        padding: 14px;
+        font-size: 1.1em;
     }
 
     .setting-item {
@@ -452,6 +479,7 @@ input[type="text"] {
     }
 
     #hotbar-container {
-        bottom: 100px;
+        bottom: 150px;
+        transform: translateX(-50%) scale(1.2);
     }
 }

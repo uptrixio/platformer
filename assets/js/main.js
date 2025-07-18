@@ -115,7 +115,7 @@ class Main {
             this.gameInstance = null;
         }
 
-        ['hotbar-container', 'creative-inventory-menu', 'crosshair'].forEach(id => {
+        ['hotbar-container', 'creative-inventory-menu', 'crosshair', 'mobile-controls', 'mobile-top-buttons'].forEach(id => {
             const el = document.getElementById(id);
             if (el) el.style.display = 'none';
         });

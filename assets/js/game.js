@@ -6,6 +6,7 @@ import { MenuManager } from './menu.js';
 import { Hotbar } from './hotbar.js';
 import { CreativeInventory } from './creative_inventory.js';
 import { worldSettings } from './world_config.js';
+import { isMobile } from './utils.js';
 
 export class Game {
     constructor(container, options) {
@@ -77,7 +78,7 @@ export class Game {
 
         window.addEventListener('resize', () => this.onWindowResize(), false);
         if (!this.isMenu) {
-             this.setupPointerLock();
+             this.setupGameInteraction();
         }
         this.loadSettings();
     }
@@ -103,42 +104,52 @@ export class Game {
         this.applySetting('renderDistance', localStorage.getItem('renderDistance') || '8');
     }
 
-    setupPointerLock() {
-        const lockFunction = () => {
-             if (this.isReady && !this.isGameActive && !(this.creativeInventory && this.creativeInventory.isOpen)) {
-                this.controls.lock().catch(e => {});
-            }
-        }
-        this.container.addEventListener('click', lockFunction);
-
+    setupGameInteraction() {
         this.controls.onLock = () => {
             this.isGameActive = true;
             this.menuManager.showScreen(null);
             document.getElementById('crosshair').style.display = 'block';
             if (this.hotbar) this.hotbar.show();
+            if (isMobile()) {
+                document.getElementById('mobile-controls').style.display = 'flex';
+                document.getElementById('mobile-top-buttons').style.display = 'flex';
+            }
         };
 
         this.controls.onUnlock = () => {
             if (this.creativeInventory && this.creativeInventory.isOpen) {
                 return;
             }
-            
-            if (!this.isMenu) {
-                this.isGameActive = false;
-                this.menuManager.showScreen('pause-menu');
-                document.getElementById('crosshair').style.display = 'none';
-                if (this.hotbar) this.hotbar.hide();
+            this.isGameActive = false;
+            this.menuManager.showScreen('pause-menu');
+            document.getElementById('crosshair').style.display = 'none';
+            if (this.hotbar) this.hotbar.hide();
+            if (isMobile()) {
+                document.getElementById('mobile-controls').style.display = 'none';
+                document.getElementById('mobile-top-buttons').style.display = 'none';
             }
         };
-    }
-
-    start() {
-        this.isGameActive = true;
-        this.controls.lock().catch(e => {});
+        
+        if (isMobile()) {
+             this.controls.isLocked = true;
+             this.controls.onLock();
+        } else {
+            const lockFunction = () => {
+                 if (this.isReady && !this.isGameActive && !(this.creativeInventory && this.creativeInventory.isOpen)) {
+                    this.controls.lock().catch(e => {});
+                }
+            }
+            this.container.addEventListener('click', lockFunction);
+        }
     }
 
     resume() {
-        this.controls.lock().catch(e => {});
+        if (isMobile()) {
+            this.controls.isLocked = true;
+            this.controls.onLock();
+        } else {
+            this.controls.lock().catch(e => {});
+        }
     }
 
     updatePlayerNickname(nickname) {
