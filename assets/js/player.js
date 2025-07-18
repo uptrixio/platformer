@@ -19,7 +19,7 @@ export class Player {
         this.gravity = -25;
         
         this.onGround = false;
-        this.isFlying = this.game.worldData.gameMode === 'creative';
+        this.isFlying = false; // Игрок всегда начинает на земле, даже в креативе
         this.isSwimming = false;
         
         this.nickname = localStorage.getItem('nickname') || 'Player';

@@ -126,11 +126,19 @@ export class Controls {
         
         if (event.code === 'Space') {
             const now = Date.now();
-            if (this.game.isGameActive && this.game.worldData.gameMode === 'creative' && now - this.lastSpacePress < 300) {
-                this.player.toggleFly();
-            } else if (this.game.isGameActive && !this.player.isFlying) {
+            
+            if (this.game.isGameActive && this.game.worldData.gameMode === 'creative') {
+                if (now - this.lastSpacePress < 300) {
+                    this.player.toggleFly();
+                    this.lastSpacePress = 0;
+                    return;
+                }
+            }
+            
+            if (this.game.isGameActive && !this.player.isFlying) {
                 this.player.jump();
             }
+
             this.lastSpacePress = now;
         }
 
