@@ -1,4 +1,5 @@
 import { blockTypes } from './world_config.js';
+import { t } from './localization.js';
 
 export class Hotbar {
     constructor(game) {
@@ -33,7 +34,9 @@ export class Hotbar {
             });
         }
         this.updateSelection();
-        this.game.player.updateHeldItem(this.getActiveItem());
+        if (this.game.player) {
+            this.game.player.updateHeldItem(this.getActiveItem());
+        }
     }
 
     getActiveItem() {
@@ -54,7 +57,9 @@ export class Hotbar {
         this.slots.forEach((slot, i) => {
             slot.classList.toggle('active', i === this.selectedSlot);
         });
-        this.game.player.updateHeldItem(this.getActiveItem());
+        if (this.game.player) {
+            this.game.player.updateHeldItem(this.getActiveItem());
+        }
     }
 
     setItem(index, blockType) {
@@ -63,11 +68,17 @@ export class Hotbar {
         
         const slot = this.slots[index];
         if (blockType && blockTypes[blockType]) {
-            slot.textContent = blockTypes[blockType].name.substring(0, 3);
+            slot.textContent = t(blockTypes[blockType].name);
         } else {
             slot.textContent = '';
         }
         this.updateSelection();
+    }
+
+    updateAllSlots() {
+        this.items.forEach((item, index) => {
+            this.setItem(index, item);
+        });
     }
 
     show() {

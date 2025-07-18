@@ -1,7 +1,7 @@
 import { Game } from './game.js';
 import { MenuManager } from './menu.js';
 import { WorldManager } from './worldManager.js';
-import { setLanguage, updateUIText, getCurrentLanguage } from './localization.js';
+import { setLanguage, updateUIText, getCurrentLanguage, t } from './localization.js';
 
 class Main {
     constructor() {
@@ -90,7 +90,18 @@ class Main {
         document.getElementById('fovRange').addEventListener('input', () => this.updateSetting('fov', document.getElementById('fovRange').value, 'fovValue', 0));
         document.getElementById('sensitivityRange').addEventListener('input', () => this.updateSetting('mouseSensitivity', document.getElementById('sensitivityRange').value, 'sensitivityValue', 1));
         document.getElementById('renderDistanceRange').addEventListener('input', () => this.updateSetting('renderDistance', document.getElementById('renderDistanceRange').value, 'renderDistanceValue'));
-        document.getElementById('languageSelect').addEventListener('change', (e) => setLanguage(e.target.value));
+        
+        document.getElementById('languageSelect').addEventListener('change', (e) => {
+            setLanguage(e.target.value);
+            if (this.gameInstance) {
+                if (this.gameInstance.creativeInventory) {
+                    this.gameInstance.creativeInventory.populateGrid();
+                }
+                if (this.gameInstance.hotbar) {
+                    this.gameInstance.hotbar.updateAllSlots();
+                }
+            }
+        });
         
         document.getElementById('antialiasingCheckbox').addEventListener('change', (e) => {
             localStorage.setItem('antialiasing', e.target.checked);
@@ -160,17 +171,22 @@ class Main {
             this.menuGameInstance = null;
         }
         
+        const loadingTextElement = document.getElementById('loading-text');
+        if (worldData.generated) {
+            loadingTextElement.textContent = t('Loading World...');
+        } else {
+            loadingTextElement.textContent = t('Generating World...');
+        }
+        
+        this.showLoadingScreen(true);
+        this.updateLoadingProgress(0);
+
         const onReady = () => {
             this.showLoadingScreen(false);
             if (!worldData.generated) {
                 this.worldManager.setWorldAsGenerated(worldName);
             }
         };
-        
-        if (!worldData.generated) {
-            this.showLoadingScreen(true);
-            this.updateLoadingProgress(0);
-        }
         
         setTimeout(() => {
             this.gameInstance = new Game(this.gameContainer, {

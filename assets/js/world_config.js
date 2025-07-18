@@ -13,25 +13,25 @@ export function setWorldSeed(seed) {
 }
 
 export const blockTypes = {
-    air: { name: 'Air' },
-    grass: { color: 0x559020, name: 'Grass' },
-    dirt: { color: 0x8B4513, name: 'Dirt' },
-    stone: { color: 0x808080, name: 'Stone' },
-    sand: { color: 0xF4A460, name: 'Sand' },
+    air: { name: 'block.air' },
+    grass: { color: 0x559020, name: 'block.grass' },
+    dirt: { color: 0x8B4513, name: 'block.dirt' },
+    stone: { color: 0x808080, name: 'block.stone' },
+    sand: { color: 0xF4A460, name: 'block.sand' },
     water: {
         color: 0x4682B4,
         transparent: true,
         opacity: 0.7,
-        name: 'Water'
+        name: 'block.water'
     },
-    wood: { color: 0x66402D, name: 'Wood' },
-    leaves: { color: 0x228B22, transparent: true, opacity: 0.9, name: 'Leaves' },
-    gold_block: { color: 0xFFD700, name: 'Gold Block' },
-    diamond_block: { color: 0xB9F2FF, name: 'Diamond Block' },
-    lapis_block: { color: 0x000080, name: 'Lapis Block' },
-    redstone_block: { color: 0xFF0000, name: 'Redstone Block' },
-    coal_ore: { color: 0x36454F, name: 'Coal Ore'},
-    iron_ore: { color: 0xA19D94, name: 'Iron Ore'}
+    wood: { color: 0x66402D, name: 'block.wood' },
+    leaves: { color: 0x228B22, transparent: true, opacity: 0.9, name: 'block.leaves' },
+    gold_block: { color: 0xFFD700, name: 'block.gold' },
+    diamond_block: { color: 0xB9F2FF, name: 'block.diamond' },
+    lapis_block: { color: 0x000080, name: 'block.lapis' },
+    redstone_block: { color: 0xFF0000, name: 'block.redstone' },
+    coal_ore: { color: 0x36454F, name: 'block.coal_ore'},
+    iron_ore: { color: 0xA19D94, name: 'block.iron_ore'}
 };
 
 export const blockMaterials = {};

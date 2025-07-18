@@ -1,5 +1,6 @@
 import { blockTypes } from './world_config.js';
 import { isMobile } from './utils.js';
+import { t } from './localization.js';
 
 export class CreativeInventory {
     constructor(game) {
@@ -7,7 +8,6 @@ export class CreativeInventory {
         this.hotbar = game.hotbar;
         this.menu = document.getElementById('creative-inventory-menu');
         this.grid = document.getElementById('creative-inventory-grid');
-        this.searchInput = document.getElementById('inventory-search');
         this.isOpen = false;
 
         this.init();
@@ -15,7 +15,6 @@ export class CreativeInventory {
 
     init() {
         this.populateGrid();
-        this.searchInput.addEventListener('input', () => this.filterBlocks());
         
         if (isMobile()) {
             this.grid.addEventListener('click', (e) => {
@@ -43,19 +42,11 @@ export class CreativeInventory {
             if(type === 'air') continue;
             const item = document.createElement('div');
             item.className = 'inventory-item';
-            item.textContent = blockTypes[type].name;
+            item.textContent = t(blockTypes[type].name);
             item.dataset.blockType = type;
             item.draggable = !isMobile();
             this.grid.appendChild(item);
         }
-    }
-
-    filterBlocks() {
-        const query = this.searchInput.value.toLowerCase();
-        this.grid.querySelectorAll('.inventory-item').forEach(item => {
-            const name = item.textContent.toLowerCase();
-            item.style.display = name.includes(query) ? 'flex' : 'none';
-        });
     }
 
     toggle() {
@@ -63,10 +54,10 @@ export class CreativeInventory {
         this.menu.style.display = this.isOpen ? 'flex' : 'none';
         
         if (this.isOpen) {
-            this.game.controls.unlock();
+            if(this.game.isGameActive) this.game.controls.unlock();
         } else {
             if (this.game.isGameActive && !isMobile()) {
-                this.game.controls.lock();
+                this.game.controls.lock().catch(()=>{});
             } else if(this.game.isGameActive && isMobile()) {
                 this.game.isGameActive = true; 
             }

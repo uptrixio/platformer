@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { worldSettings, getHeightAt } from './world_config.js';
+import { isMobile } from './utils.js';
 
 export class Player {
     constructor(game) {
@@ -19,7 +20,7 @@ export class Player {
         this.gravity = -25;
         
         this.onGround = false;
-        this.isFlying = false;
+        this.isFlying = this.game.worldData.gameMode === 'creative';
         this.isSwimming = false;
         
         this.nickname = localStorage.getItem('nickname') || 'Player';
