@@ -65,10 +65,10 @@ export class CreativeInventory {
         if (this.isOpen) {
             this.game.controls.unlock();
         } else {
-            if (!isMobile()) {
+            if (this.game.isGameActive && !isMobile()) {
                 this.game.controls.lock();
-            } else {
-                this.game.isGameActive = true;
+            } else if(this.game.isGameActive && isMobile()) {
+                this.game.isGameActive = true; 
             }
         }
     }

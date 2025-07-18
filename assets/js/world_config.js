@@ -3,12 +3,12 @@ import { createNoise2D } from 'simplex-noise';
 import { PerlinNoise } from './utils.js';
 
 export let noiseGen;
-let biomeNoiseGen;
+let detailNoiseGen;
 let caveNoiseGen;
 
 export function setWorldSeed(seed) {
     noiseGen = createNoise2D(seed);
-    biomeNoiseGen = createNoise2D(seed + '_biomes');
+    detailNoiseGen = createNoise2D(seed + '_details');
     caveNoiseGen = new PerlinNoise(seed + '_caves');
 }
 
@@ -64,34 +64,26 @@ export const worldSettings = {
     chunkSize: 16,
     chunkHeight: 128,
     renderDistance: 8,
-    seaLevel: 45,
+    seaLevel: 52,
     bedrockLevel: 0,
-    baseHeight: 40, 
-    terrainHeight: 45
+    baseHeight: 60, 
+    terrainHeight: 50
 };
 
 export function getHeightAt(x, z) {
-    let total = 0;
-    const octaves = 6;
-    let frequency = 0.008;
-    let amplitude = 1;
-    let maxAmplitude = 0;
-
-    for (let i = 0; i < octaves; i++) {
-        total += noiseGen(x * frequency, z * frequency) * amplitude;
-        maxAmplitude += amplitude;
-        amplitude *= 0.5;
-        frequency *= 2;
-    }
+    const baseFreq = 0.003;
+    const detailFreq = 0.015;
     
-    let normalizedHeight = (total / maxAmplitude);
-    normalizedHeight = Math.pow(normalizedHeight, 2);
-    const height = (normalizedHeight * worldSettings.terrainHeight) + worldSettings.baseHeight;
+    let- baseHeight = noiseGen(x * baseFreq, z * baseFreq) * worldSettings.terrainHeight * 0.7;
+    let detailHeight = detailNoiseGen(x * detailFreq, z * detailFreq) * worldSettings.terrainHeight * 0.3;
+
+    let height = baseHeight + detailHeight + worldSettings.baseHeight;
+    
     return height;
 }
 
 export function getBiome(x, z) {
-    const value = (biomeNoiseGen(x * 0.001, z * 0.001) + 1) / 2;
+    const value = (noiseGen(x * 0.001, z * 0.001) + 1) / 2;
     if (value > 0.55) return 'plains';
     return 'beach';
 }

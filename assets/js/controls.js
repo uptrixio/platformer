@@ -54,7 +54,7 @@ export class Controls {
     }
     
     lock() {
-        if(isMobile()) return;
+        if(isMobile() || !this.domElement.isConnected) return;
         return this.domElement.requestPointerLock();
     }
     
@@ -104,10 +104,12 @@ export class Controls {
     }
 
     onKeyDown(event) {
+        if (!this.game.isGameActive && !this.game.isMenu) return;
+        
         this.keyboard[event.code] = true;
         
         if (event.code === 'Escape') {
-            if (this.game.creativeInventory && this.game.creativeInventory.isOpen) {
+             if (this.game.isGameActive && this.game.creativeInventory && this.game.creativeInventory.isOpen) {
                 this.game.creativeInventory.toggle();
                 return;
             }
@@ -116,7 +118,7 @@ export class Controls {
             }
         }
         
-        if (event.code === 'KeyF' && this.game.worldData.gameMode === 'creative') {
+        if (event.code === 'KeyF' && this.game.isGameActive && this.game.worldData.gameMode === 'creative') {
             if (this.game.creativeInventory) {
                 this.game.creativeInventory.toggle();
             }
@@ -124,9 +126,9 @@ export class Controls {
         
         if (event.code === 'Space') {
             const now = Date.now();
-            if (this.game.worldData.gameMode === 'creative' && now - this.lastSpacePress < 300) {
+            if (this.game.isGameActive && this.game.worldData.gameMode === 'creative' && now - this.lastSpacePress < 300) {
                 this.player.toggleFly();
-            } else if (!this.player.isFlying) {
+            } else if (this.game.isGameActive && !this.player.isFlying) {
                 this.player.jump();
             }
             this.lastSpacePress = now;
@@ -138,7 +140,7 @@ export class Controls {
         
         if (event.code.startsWith('Digit')) {
             const index = parseInt(event.code.replace('Digit', ''), 10) - 1;
-            if (index >= 0 && index < 5 && this.game.hotbar) {
+            if (this.game.isGameActive && index >= 0 && index < 5 && this.game.hotbar) {
                 this.game.hotbar.selectSlot(index);
             }
         }

@@ -127,8 +127,12 @@ export class Player {
             this.handleWalking(delta);
         }
         
-        this.position.add(this.velocity.clone().multiplyScalar(delta));
-        this.handleCollisions();
+        const subSteps = 5;
+        const subDelta = delta / subSteps;
+        for (let i = 0; i < subSteps; i++) {
+            this.position.add(this.velocity.clone().multiplyScalar(subDelta));
+            this.handleCollisions();
+        }
         
         this.game.controls.updateCameraPosition();
         
