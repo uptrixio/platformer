@@ -11,6 +11,7 @@ export const translations = {
         'Field of View (FOV):': 'Field of View (FOV):',
         'Mouse Sensitivity:': 'Mouse Sensitivity:',
         'Render Distance:': 'Render Distance:',
+        'Anti-Aliasing (AA):': 'Anti-Aliasing (AA):', // New Translation
         'Language:': 'Language:',
         'About Game': 'About',
         'Developed by Timur.': 'Developed by Timur.',
@@ -37,6 +38,7 @@ export const translations = {
         'Field of View (FOV):': 'Поле зрения (FOV):',
         'Mouse Sensitivity:': 'Чувствительность мыши:',
         'Render Distance:': 'Дальность прорисовки:',
+        'Anti-Aliasing (AA):': 'Сглаживание (AA):', // New Translation
         'Language:': 'Язык:',
         'About Game': 'О игре',
         'Developed by Timur.': 'Разработано Тимуром.',
@@ -63,6 +65,7 @@ export const translations = {
         'Field of View (FOV):': '视野(FOV):',
         'Mouse Sensitivity:': '鼠标灵敏度:',
         'Render Distance:': '渲染距离:',
+        'Anti-Aliasing (AA):': '抗锯齿 (AA):', // New Translation
         'Language:': '语言:',
         'About Game': '关于',
         'Developed by Timur.': '由Timur开发。',

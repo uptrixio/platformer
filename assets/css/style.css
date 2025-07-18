@@ -425,6 +425,12 @@ input[type="text"] {
     background-position: center;
 }
 
+.setting-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
 .inventory-item:active {
     cursor: grabbing;
 }

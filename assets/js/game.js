@@ -45,8 +45,18 @@ export class Game {
     }
 
     initRenderer() {
-        const mobileOptimizations = isMobile() ? { antialias: false, powerPreference: 'low-power' } : { antialias: true, powerPreference: 'high-performance' };
-        this.renderer = new THREE.WebGLRenderer({ ...mobileOptimizations });
+        const useAntialiasing = localStorage.getItem('antialiasing') === 'true';
+        let rendererOptions = {
+            powerPreference: 'high-performance',
+            antialias: useAntialiasing 
+        };
+
+        if (isMobile()) {
+            rendererOptions.antialias = false; 
+            rendererOptions.powerPreference = 'low-power';
+        }
+        
+        this.renderer = new THREE.WebGLRenderer(rendererOptions);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setClearColor(0x87CEEB);
@@ -103,6 +113,7 @@ export class Game {
     }
 
     loadSettings() {
+        if (this.isMenu) return; 
         this.applySetting('fov', localStorage.getItem('fov') || '90');
         this.applySetting('mouseSensitivity', localStorage.getItem('mouseSensitivity') || '1.0');
         this.applySetting('renderDistance', localStorage.getItem('renderDistance') || '8');

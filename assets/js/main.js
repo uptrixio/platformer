@@ -18,7 +18,28 @@ class Main {
         this.setupEventListeners();
         this.showMainMenu();
         updateUIText();
+        this.loadSettings();
     }
+    
+    loadSettings() {
+        const fov = localStorage.getItem('fov') || '90';
+        document.getElementById('fovRange').value = fov;
+        document.getElementById('fovValue').textContent = fov;
+
+        const sensitivity = localStorage.getItem('mouseSensitivity') || '1.0';
+        document.getElementById('sensitivityRange').value = sensitivity;
+        document.getElementById('sensitivityValue').textContent = parseFloat(sensitivity).toFixed(1);
+
+        const renderDistance = localStorage.getItem('renderDistance') || '8';
+        document.getElementById('renderDistanceRange').value = renderDistance;
+        document.getElementById('renderDistanceValue').textContent = renderDistance;
+
+        const antialiasing = localStorage.getItem('antialiasing') === 'true';
+        document.getElementById('antialiasingCheckbox').checked = antialiasing;
+
+        document.getElementById('languageSelect').value = getCurrentLanguage();
+    }
+
 
     setupEventListeners() {
         this.menuManager.onPlay = () => this.showWorldSelection();
@@ -66,18 +87,15 @@ class Main {
             }
         });
         
-        const fovRange = document.getElementById('fovRange');
-        fovRange.addEventListener('input', () => this.updateSetting('fov', fovRange.value, 'fovValue', 0));
-
-        const sensitivityRange = document.getElementById('sensitivityRange');
-        sensitivityRange.addEventListener('input', () => this.updateSetting('mouseSensitivity', sensitivityRange.value, 'sensitivityValue', 1));
-
-        const renderDistanceRange = document.getElementById('renderDistanceRange');
-        renderDistanceRange.addEventListener('input', () => this.updateSetting('renderDistance', renderDistanceRange.value, 'renderDistanceValue'));
+        document.getElementById('fovRange').addEventListener('input', () => this.updateSetting('fov', document.getElementById('fovRange').value, 'fovValue', 0));
+        document.getElementById('sensitivityRange').addEventListener('input', () => this.updateSetting('mouseSensitivity', document.getElementById('sensitivityRange').value, 'sensitivityValue', 1));
+        document.getElementById('renderDistanceRange').addEventListener('input', () => this.updateSetting('renderDistance', document.getElementById('renderDistanceRange').value, 'renderDistanceValue'));
+        document.getElementById('languageSelect').addEventListener('change', (e) => setLanguage(e.target.value));
         
-        const languageSelect = document.getElementById('languageSelect');
-        languageSelect.value = getCurrentLanguage();
-        languageSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+        document.getElementById('antialiasingCheckbox').addEventListener('change', (e) => {
+            localStorage.setItem('antialiasing', e.target.checked);
+            alert('Настройка сглаживания будет применена после перезагрузки страницы.');
+        });
     }
 
     updateSetting(key, value, valueSpanId, toFixed = null) {
