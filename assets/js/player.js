@@ -144,16 +144,16 @@ export class Player {
     
     handleWalking(delta) {
         const moveDirection = this.game.controls.getMoveDirection();
-        const speed = this.isSwimming ? this.speed * 0.5 : this.speed;
+        const speed = this.isSwimming ? this.speed * 0.6 : this.speed;
         
         this.velocity.x = moveDirection.x * speed;
         this.velocity.z = moveDirection.z * speed;
         
         if (this.isSwimming) {
-            this.velocity.y *= 0.85; 
-            this.velocity.y += this.gravity * 0.2 * delta;
-            if (this.game.controls.keyboard['Space']) this.velocity.y = 4;
-            if (this.game.controls.keyboard['ShiftLeft']) this.velocity.y = -4;
+            this.velocity.y *= 0.7; 
+            this.velocity.y += this.gravity * 0.1 * delta;
+            if (this.game.controls.keyboard['Space']) this.velocity.y = 3;
+            if (this.game.controls.keyboard['ShiftLeft']) this.velocity.y = -3;
         } else {
             this.velocity.y += this.gravity * delta;
             if (this.onGround) {
@@ -209,7 +209,7 @@ export class Player {
                 for (let z = minZ; z < maxZ; z++) {
                     const block = world.getBlock(x, y, z);
                     
-                    if (block && block !== 'air' && block !== 'leaves' && (!this.isSwimming || block !== 'water') ) {
+                    if (block && block !== 'air' && block !== 'leaves' && block !== 'water') {
                         const blockBox = new THREE.Box3(
                             new THREE.Vector3(x, y, z), 
                             new THREE.Vector3(x + 1, y + 1, z + 1)

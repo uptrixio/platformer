@@ -77,21 +77,21 @@ export class Chunk {
                     for (let y = 0; y < worldSettings.chunkHeight; y++) {
                          let blockType = 'air';
                          if (y < terrainTopY) {
-                            if (y > terrainTopY - 1) {
+                            if (y === terrainTopY - 1 && y >= worldSettings.seaLevel) {
                                 blockType = 'grass';
                             } else if (y > terrainTopY - 5) {
                                 blockType = 'dirt';
                             } else {
                                 blockType = 'stone';
                             }
-                         } else if (y <= worldSettings.seaLevel && y > terrainTopY) {
-                             blockType = 'water';
                          }
                          
-                         if (getCaveNoise(globalX, y, globalZ) < 0.3) {
-                            if (y < terrainTopY) {
-                                blockType = 'air';
-                            }
+                         if (getCaveNoise(globalX, y, globalZ) < 0.35 && y < terrainTopY) {
+                            blockType = 'air';
+                         }
+
+                         if (blockType === 'air' && y < worldSettings.seaLevel) {
+                             blockType = 'water';
                          }
 
                          if (y <= worldSettings.bedrockLevel) {
@@ -110,7 +110,7 @@ export class Chunk {
                     const height = getHeightAt(globalX, globalZ);
                     const y = Math.floor(height);
                     
-                    if (this.getBlock(x, y, z) === 'grass' && Math.random() < 0.01) {
+                    if (this.getBlock(x, y, z) === 'grass' && Math.random() < 0.015) {
                         this.generateTree(x, y + 1, z);
                     }
                 }
@@ -128,15 +128,15 @@ export class Chunk {
             this.setBlock(x, y + i, z, 'wood');
         }
 
-        const radius = 2;
+        const radius = 2.5;
         for(let ry = -radius; ry <= radius; ry++) {
             for(let rx = -radius; rx <= radius; rx++) {
                 for(let rz = -radius; rz <= radius; rz++) {
                     const d = Math.sqrt(rx*rx + ry*ry + rz*rz);
-                    if(d <= radius) {
-                        const existingBlock = this.getBlock(x + rx, y + height + ry, z + rz);
+                    if(d <= radius && !(rx === 0 && rz === 0 && ry < 0)) {
+                        const existingBlock = this.getBlock(x + rx, y + height + ry -1, z + rz);
                         if(existingBlock === 'air') {
-                            this.setBlock(x + rx, y + height + ry, z + rz, 'leaves');
+                            this.setBlock(x + rx, y + height + ry -1, z + rz, 'leaves');
                         }
                     }
                 }

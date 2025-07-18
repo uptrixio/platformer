@@ -25,7 +25,7 @@ export class Game {
         
         let renderDistance = this.isMenu ? 4 : (parseInt(localStorage.getItem('renderDistance')) || 8);
         if (isMobile() && !this.isMenu) {
-            renderDistance = 4; // Принудительное снижение дальности прорисовки на мобильных
+            renderDistance = 4;
         }
         this.world = new World(this, renderDistance);
 
@@ -47,7 +47,7 @@ export class Game {
     initRenderer() {
         const mobileOptimizations = isMobile() ? { antialias: false, powerPreference: 'low-power' } : { antialias: true, powerPreference: 'high-performance' };
         this.renderer = new THREE.WebGLRenderer({ ...mobileOptimizations });
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Ограничение плотности пикселей
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setClearColor(0x87CEEB);
         this.container.appendChild(this.renderer.domElement);

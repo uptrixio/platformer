@@ -74,7 +74,7 @@ export function getHeightAt(x, z) {
     const baseFreq = 0.003;
     const detailFreq = 0.015;
     
-    let- baseHeight = noiseGen(x * baseFreq, z * baseFreq) * worldSettings.terrainHeight * 0.7;
+    let baseHeight = noiseGen(x * baseFreq, z * baseFreq) * worldSettings.terrainHeight * 0.7;
     let detailHeight = detailNoiseGen(x * detailFreq, z * detailFreq) * worldSettings.terrainHeight * 0.3;
 
     let height = baseHeight + detailHeight + worldSettings.baseHeight;
