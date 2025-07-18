@@ -1,4 +1,5 @@
 import { blockTypes } from './world_config.js';
+import { isMobile } from './utils.js';
 
 export class CreativeInventory {
     constructor(game) {
@@ -16,11 +17,24 @@ export class CreativeInventory {
         this.populateGrid();
         this.searchInput.addEventListener('input', () => this.filterBlocks());
         
-        this.grid.addEventListener('dragstart', (e) => {
-            if (e.target.classList.contains('inventory-item')) {
-                e.dataTransfer.setData('text/plain', e.target.dataset.blockType);
-            }
-        });
+        if (isMobile()) {
+            this.grid.addEventListener('click', (e) => {
+                const item = e.target.closest('.inventory-item');
+                if (item) {
+                    const blockType = item.dataset.blockType;
+                    if (blockType) {
+                        this.hotbar.setItem(this.hotbar.selectedSlot, blockType);
+                        this.toggle();
+                    }
+                }
+            });
+        } else {
+            this.grid.addEventListener('dragstart', (e) => {
+                if (e.target.classList.contains('inventory-item')) {
+                    e.dataTransfer.setData('text/plain', e.target.dataset.blockType);
+                }
+            });
+        }
     }
 
     populateGrid() {
@@ -31,7 +45,7 @@ export class CreativeInventory {
             item.className = 'inventory-item';
             item.textContent = blockTypes[type].name;
             item.dataset.blockType = type;
-            item.draggable = true;
+            item.draggable = !isMobile();
             this.grid.appendChild(item);
         }
     }
@@ -51,7 +65,11 @@ export class CreativeInventory {
         if (this.isOpen) {
             this.game.controls.unlock();
         } else {
-            this.game.controls.lock();
+            if (!isMobile()) {
+                this.game.controls.lock();
+            } else {
+                this.game.isGameActive = true;
+            }
         }
     }
 }

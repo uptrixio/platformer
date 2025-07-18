@@ -67,7 +67,7 @@ export const worldSettings = {
     seaLevel: 45,
     bedrockLevel: 0,
     baseHeight: 40, 
-    terrainHeight: 35 
+    terrainHeight: 45
 };
 
 export function getHeightAt(x, z) {
@@ -84,7 +84,8 @@ export function getHeightAt(x, z) {
         frequency *= 2;
     }
     
-    const normalizedHeight = (total / maxAmplitude);
+    let normalizedHeight = (total / maxAmplitude);
+    normalizedHeight = Math.pow(normalizedHeight, 2);
     const height = (normalizedHeight * worldSettings.terrainHeight) + worldSettings.baseHeight;
     return height;
 }

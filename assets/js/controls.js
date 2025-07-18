@@ -27,7 +27,8 @@ export class Controls {
             startTime: 0,
             timer: null,
             longPressDuration: 500,
-            maxMove: 15
+            maxMove: 15,
+            lastTap: 0
         };
 
         this.init();
@@ -191,7 +192,17 @@ export class Controls {
         const pauseButton = document.getElementById('mobile-pause-button');
         const creativeButton = document.getElementById('mobile-creative-button');
 
-        jumpButton.addEventListener('touchstart', (e) => { e.preventDefault(); this.player.jump(); }, {passive: false});
+        jumpButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const now = Date.now();
+            if (this.game.worldData.gameMode === 'creative' && now - this.touch.lastTap < 300) {
+                this.player.toggleFly();
+            } else {
+                 this.player.jump();
+            }
+            this.touch.lastTap = now;
+        }, {passive: false});
+
         pauseButton.addEventListener('click', () => this.unlock());
         creativeButton.addEventListener('click', () => {
              if (this.game.creativeInventory) {
@@ -257,13 +268,14 @@ export class Controls {
         this.touch.startTime = Date.now();
         
         this.touch.timer = setTimeout(() => {
-            this.game.world.handleBlockInteraction(this.camera, false, null);
+            if (this.touch.start.distanceTo(this.touch.end) < this.touch.maxMove) {
+                this.game.world.handleBlockInteraction(this.camera, false, null);
+            }
             this.touch.timer = null;
         }, this.touch.longPressDuration);
     }
 
     onTouchMove(e) {
-        if (this.touch.timer === null && !this.isLocked) return;
         if (e.target.closest('#mobile-controls, #mobile-top-buttons, #hotbar-container')) {
             return;
         }
@@ -289,10 +301,8 @@ export class Controls {
     onTouchEnd(e) {
         if (this.touch.timer) {
             clearTimeout(this.touch.timer);
-            const pressDuration = Date.now() - this.touch.startTime;
-            if (pressDuration < this.touch.longPressDuration) {
-                this.game.world.handleBlockInteraction(this.camera, true, this.game.hotbar.getActiveItem());
-            }
+            this.touch.timer = null;
+            this.game.world.handleBlockInteraction(this.camera, true, this.game.hotbar.getActiveItem());
         }
     }
 }
